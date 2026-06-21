@@ -1,0 +1,44 @@
+{
+  "name": "@sui402/console-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --exclude test/postgres-integration.test.ts",
+    "test:integration": "vitest run test/postgres-integration.test.ts",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@sui402/gateway": "0.1.0",
+    "@sui402/indexer": "0.1.0",
+    "@sui402/policy": "0.1.0",
+    "@sui402/protocol": "0.1.0",
+    "@sui402/receipts": "0.1.0",
+    "@sui402/registry": "0.1.0",
+    "@sui402/server": "0.1.0",
+    "@sui402/storage": "0.1.0",
+    "@sui402/walrus": "0.1.0",
+    "@mysten/sui": "^2.16.3",
+    "express": "^5.2.1",
+    "pg": "^8.16.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.15.6",
+    "tsx": "^4.22.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}

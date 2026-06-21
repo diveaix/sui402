@@ -1,0 +1,40 @@
+{
+  "name": "@sui402/pay",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Command-line agent payment UX for Sui402 APIs using user-owned Sui wallets.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "sui402-pay": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && vitest run"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@mysten/sui": "^2.16.3",
+    "@sui402/client": "0.1.0",
+    "@sui402/protocol": "0.1.0",
+    "@sui402/sui": "0.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

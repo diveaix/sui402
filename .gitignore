@@ -1,0 +1,19 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+!.env.production.example
+!.env.testnet-rehearsal.example
+npm-debug.log*
+
+# Local runtime state and generated artifacts
+.agents/
+.playwright-cli/
+.sui402/
+artifacts/
+output/
+.last-session-spend.json
+.session-open.json
+move/**/build/

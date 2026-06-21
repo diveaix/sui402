@@ -1,0 +1,9 @@
+[package]
+name = "sui402_sessions"
+version = "0.1.0"
+edition = "2024.beta"
+
+[dependencies]
+
+[addresses]
+sui402_sessions = "0x0"

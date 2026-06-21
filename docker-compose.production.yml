@@ -1,0 +1,150 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${SUI402_REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SUI402_POSTGRES_DB:-sui402}
+      POSTGRES_USER: ${SUI402_POSTGRES_USER:-sui402}
+      POSTGRES_PASSWORD: ${SUI402_POSTGRES_PASSWORD:-sui402}
+    ports:
+      - "${SUI402_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - sui402-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  provider-api:
+    build:
+      context: .
+      target: provider-api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 4020
+      SUI402_REDIS_URL: redis://redis:6379
+      SUI402_POSTGRES_URL: postgres://${SUI402_POSTGRES_USER:-sui402}:${SUI402_POSTGRES_PASSWORD:-sui402}@postgres:5432/${SUI402_POSTGRES_DB:-sui402}
+      SUI402_RUN_STORAGE_MIGRATIONS: "true"
+    ports:
+      - "${SUI402_PROVIDER_PORT:-4020}:4020"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:4020/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  console-api:
+    build:
+      context: .
+      target: console-api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 4030
+      SUI402_CONSOLE_STORAGE_DRIVER: postgres
+      SUI402_CONSOLE_POSTGRES_URL: postgres://${SUI402_POSTGRES_USER:-sui402}:${SUI402_POSTGRES_PASSWORD:-sui402}@postgres:5432/${SUI402_POSTGRES_DB:-sui402}
+      SUI402_CONSOLE_RUN_STORAGE_MIGRATIONS: "true"
+    ports:
+      - "${SUI402_CONSOLE_PORT:-4030}:4030"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:4030/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  indexer-session:
+    build:
+      context: .
+      target: indexer
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      SUI402_INDEXER_EVENT_KIND: session-spend
+      SUI402_INDEXER_SOURCE: ${SUI402_INDEXER_SOURCE:-grpc}
+      SUI402_INDEXER_SINK: postgres
+      SUI402_INDEXER_POSTGRES_URL: postgres://${SUI402_POSTGRES_USER:-sui402}:${SUI402_POSTGRES_PASSWORD:-sui402}@postgres:5432/${SUI402_POSTGRES_DB:-sui402}
+      SUI402_INDEXER_LOOP: "true"
+      SUI402_INDEXER_SETUP: "true"
+      SUI402_INDEXER_INTERVAL_MS: ${SUI402_INDEXER_INTERVAL_MS:-30000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  indexer-settlement:
+    build:
+      context: .
+      target: indexer
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      SUI402_INDEXER_EVENT_KIND: settlement
+      SUI402_INDEXER_SOURCE: ${SUI402_INDEXER_SOURCE:-grpc}
+      SUI402_INDEXER_SINK: postgres
+      SUI402_INDEXER_PACKAGE_ID: ${SUI402_SETTLEMENT_PACKAGE_ID:-0x35265692bed3c723ca401ddb7a533ea8b35238645bdc25ecc51dea31d9062b3b}
+      SUI402_INDEXER_POSTGRES_URL: postgres://${SUI402_POSTGRES_USER:-sui402}:${SUI402_POSTGRES_PASSWORD:-sui402}@postgres:5432/${SUI402_POSTGRES_DB:-sui402}
+      SUI402_INDEXER_LOOP: "true"
+      SUI402_INDEXER_SETUP: "true"
+      SUI402_INDEXER_INTERVAL_MS: ${SUI402_INDEXER_INTERVAL_MS:-30000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      target: dashboard
+      args:
+        VITE_SUI402_CONSOLE_API_URL: ${VITE_SUI402_CONSOLE_API_URL:-http://localhost:4030}
+    restart: unless-stopped
+    ports:
+      - "${SUI402_DASHBOARD_PORT:-4040}:80"
+    depends_on:
+      console-api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  sui402-postgres-data:

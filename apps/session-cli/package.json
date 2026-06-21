@@ -1,0 +1,40 @@
+{
+  "name": "@sui402/session-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "open": "tsx src/open-session.ts",
+    "spend": "tsx src/spend-session.ts",
+    "close": "tsx src/close-session.ts",
+    "fetch:payment": "tsx src/fetch-with-cli-payment.ts",
+    "fetch:session": "tsx src/fetch-with-cli-session.ts",
+    "inspect": "tsx src/inspect-manager.ts",
+    "demo:session": "tsx src/session-demo.ts",
+    "receipt:key": "tsx src/generate-receipt-key.ts",
+    "settlement": "tsx src/settlement-cli.ts",
+    "settlement:create-ledger": "tsx src/settlement-cli.ts create-ledger",
+    "settlement:settle-receipt": "tsx src/settlement-cli.ts settle-receipt",
+    "settlement:settle-batch": "tsx src/settlement-cli.ts settle-batch",
+    "settlement:inspect-ledger": "tsx src/settlement-cli.ts inspect-ledger",
+    "settlement:demo": "tsx src/settlement-cli.ts demo"
+  },
+  "bin": {
+    "sui402-settlement": "dist/settlement-cli.js",
+    "sui402-open-session": "dist/open-session.js",
+    "sui402-spend-session": "dist/spend-session.js",
+    "sui402-close-session": "dist/close-session.js"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.16.3",
+    "@sui402/client": "0.1.0",
+    "@sui402/protocol": "0.1.0",
+    "@sui402/sui": "0.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.2",
+    "typescript": "^5.9.3"
+  }
+}

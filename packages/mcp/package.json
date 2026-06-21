@@ -1,0 +1,50 @@
+{
+  "name": "@sui402/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "sui402-mcp": "./dist/server.js",
+    "sui402-mcp-config": "./dist/client-config.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/server.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@sui402/protocol": "0.1.0",
+    "@sui402/server": "0.1.0",
+    "@sui402/storage": "0.1.0",
+    "@sui402/sui": "0.1.0",
+    "pg": "^8.16.3",
+    "redis": "^5.10.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.6",
+    "tsx": "^4.22.2",
+    "typescript": "^5.9.3"
+  },
+  "description": "MCP server/client helpers for Sui402-protected tool calls.",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

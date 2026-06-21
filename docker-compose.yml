@@ -1,0 +1,29 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sui402
+      POSTGRES_USER: sui402
+      POSTGRES_PASSWORD: sui402
+    ports:
+      - "5432:5432"
+    volumes:
+      - sui402-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sui402 -d sui402"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  sui402-postgres-data:
