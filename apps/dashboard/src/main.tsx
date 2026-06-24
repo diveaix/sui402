@@ -2092,35 +2092,11 @@ function App() {
               />
             ) : null}
 
-            <label className="openapi-field">
-              OpenAPI operationId optional
-              <input
-                aria-describedby="openapi-operation-help"
-                value={draft.openApiOperationId}
-                placeholder="searchForecast"
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    openApiOperationId: event.target.value.trim(),
-                    openApiMethod: "",
-                    openApiPath: ""
-                  })
-                }
-              />
-              <small id="openapi-operation-help">
-                If this matches an imported operation, Sui402 will use that endpoint's suggested resource scope for the draft unless
-                you override Resource scope below.
-                {draft.openApiMethod && draft.openApiPath
-                  ? ` Selected by method/path: ${draft.openApiMethod} ${draft.openApiPath}.`
-                  : ""}
-              </small>
-            </label>
-
             <div className="publisher-advanced">
               <div className="publisher-fields-header">
                 <div>
-                  <strong>Listing details</strong>
-                  <span>These are mostly auto-filled. Change the advanced values only if you know the route/token you want to launch.</span>
+                  <strong>Finish the listing</strong>
+                  <span>Most publishers only need these four things: name, payout wallet, price, and contact.</span>
                 </div>
               </div>
 
@@ -2160,8 +2136,38 @@ function App() {
                   />
                   <small>Optional. Used for review/support, not shown as the payment identity.</small>
                 </label>
+              </div>
+
+              <details className="publisher-developer-options">
+                <summary>Developer options</summary>
+                <p>
+                  Leave these auto-filled unless you are wiring a specific OpenAPI operation, custom coin, or reusable paid session.
+                </p>
+                <div className="publisher-fields">
+                  <label className="openapi-field">
+                    OpenAPI operationId
+                    <input
+                      aria-describedby="openapi-operation-help"
+                      value={draft.openApiOperationId}
+                      placeholder="searchForecast"
+                      onChange={(event) =>
+                        setDraft({
+                          ...draft,
+                          openApiOperationId: event.target.value.trim(),
+                          openApiMethod: "",
+                          openApiPath: ""
+                        })
+                      }
+                    />
+                    <small id="openapi-operation-help">
+                      Optional. If this matches an imported operation, Sui402 will use that endpoint's suggested paid access scope.
+                      {draft.openApiMethod && draft.openApiPath
+                        ? ` Selected by method/path: ${draft.openApiMethod} ${draft.openApiPath}.`
+                        : ""}
+                    </small>
+                  </label>
                 <label>
-                  Marketplace ID
+                  Listing URL slug
                   <input
                     required={publisherDetailsOpen}
                     value={draft.id}
@@ -2171,31 +2177,32 @@ function App() {
                   <small>Stable slug for your listing URL and agent search results.</small>
                 </label>
                 <label>
-                  Paid route scope
+                  Paid access scope
                   <input
                     required={publisherDetailsOpen}
                     value={draft.resourceScope}
                     onChange={(event) => setDraft({ ...draft, resourceScope: event.target.value })}
                   />
-                  <small>What the payment unlocks, for example <code>api:weather-api</code> or <code>api:weather/*</code>.</small>
+                  <small>Developer identifier for what the payment unlocks, for example <code>api:weather-api</code> or <code>api:weather/*</code>.</small>
                 </label>
                 <label>
-                  Payment token
+                  Payment coin type
                   <input
                     value={draft.coinType}
                     onChange={(event) => setDraft({ ...draft, coinType: event.target.value })}
                   />
-                  <small>Sui coin type buyers pay with. Default is native SUI.</small>
+                  <small>Advanced Sui coin type buyers pay with. Default is native SUI.</small>
                 </label>
                 <label>
-                  Session package
+                  Session package ID
                   <input
                     value={draft.sessionPackageId}
                     onChange={(event) => setDraft({ ...draft, sessionPackageId: event.target.value })}
                   />
-                  <small>Advanced. Used only for reusable paid sessions; one-shot API calls can keep the default.</small>
+                  <small>Operator/developer setting for reusable paid sessions. One-shot API calls can keep the default.</small>
                 </label>
-              </div>
+                </div>
+              </details>
               <div className="publisher-submit-row">
                 <span>Ready when endpoint, payout wallet, and price look right.</span>
                 <button className="primary-button submit-button" type="submit">
@@ -2663,7 +2670,7 @@ export function ScanResultCard({ result }: { result: ScanLookupResult }) {
           <ScanFact label="amount" value={formatPrice(record.amount, record.coinType)} />
           <ScanFact label="network" value={formatNetwork(record.network)} />
           <ScanFact label="merchant" value={record.merchantId ?? shortValue(record.recipient)} />
-          <ScanFact label="resource" value={record.resource} />
+          <ScanFact label="access" value={record.resource} />
           <ScanFact label="challenge" value={shortValue(record.challengeId)} />
           <ScanFact label="created" value={formatTimestamp(record.createdAt)} />
         </div>
@@ -2675,10 +2682,15 @@ export function ScanResultCard({ result }: { result: ScanLookupResult }) {
             <strong>Receipt</strong>
             <div className="scan-fact-grid compact">
               <ScanFact label="id" value={shortValue(record.receipt.id)} />
-              <ScanFact label="signer" value={shortValue(record.receipt.signer)} />
               <ScanFact label="sequence" value={record.receipt.sequence} />
               <ScanFact label="expires" value={formatTimestamp(record.receipt.expiresAt)} />
             </div>
+            <details className="scan-technical-fields">
+              <summary>Technical receipt fields</summary>
+              <div className="scan-fact-grid compact">
+                <ScanFact label="receipt signer" value={shortValue(record.receipt.signer)} />
+              </div>
+            </details>
           </div>
         ) : null}
       </article>
