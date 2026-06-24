@@ -83,6 +83,8 @@ For the latest production-readiness status, verified gates, and remaining
 external launch requirements, see `PRODUCTION_STATUS.md`.
 For the agent wallet, SDK, MCP, publisher, marketplace, and scan golden paths,
 see `docs/product-quickstart.md`.
+For the dashboard page roles, user-facing language rules, and UX handoff, see
+`docs/dashboard-product-ux.md`.
 For testnet publishing and session operations, see `docs/testnet.md`.
 For the real one-shot testnet payment demo, see `docs/testnet-demo.md`.
 For seller testnet/mainnet configuration, see `docs/seller-configuration.md`.
