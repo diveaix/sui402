@@ -6,6 +6,9 @@ This package is intentionally non-custodial: it reads a local Sui signer from
 `SUI_SECRET_KEY`, `SUI_MNEMONIC`, or your local Sui CLI keystore, signs Sui
 transactions locally, and never sends private keys to Sui402 infrastructure.
 
+Think of it as the Sui402 agent entrypoint: wallet readiness, marketplace
+discovery, paid `curl`, session planning, and scan lookups in one CLI.
+
 ```bash
 npx @sui402/pay init
 npx @sui402/pay readiness
