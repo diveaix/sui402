@@ -78,6 +78,9 @@ npm run demo:check
 ## Current Phase
 
 We are building this in phases. See `docs/roadmap.md`.
+
+For the latest production-readiness status, verified gates, and remaining
+external launch requirements, see `PRODUCTION_STATUS.md`.
 For testnet publishing and session operations, see `docs/testnet.md`.
 For the real one-shot testnet payment demo, see `docs/testnet-demo.md`.
 For seller testnet/mainnet configuration, see `docs/seller-configuration.md`.
