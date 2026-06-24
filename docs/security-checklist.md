@@ -54,8 +54,10 @@ Use this before exposing Sui402 services to real users or funds.
 - Review terms, privacy policy, and regulatory posture with counsel.
 - Run `npm run launch:check` against `.env.production`. When
   `SUI402_NETWORK=sui:mainnet` or `SUI402_SERIOUS_LAUNCH=true`, the checker now
-  requires concrete launch evidence for external audit, legal review, on-call,
-  KMS/receipt signing, and monitoring readiness.
+  requires concrete launch evidence for hosted staging, funded rehearsal,
+  external audits, legal review, secret management, OIDC/JWKS, on-call,
+  KMS/receipt signing, monitoring, backup/restore, Sui RPC ownership, and seller
+  intake controls.
 
 ### Launch Evidence Gate
 
@@ -78,21 +80,41 @@ SUI402_LAUNCH_EVIDENCE_FILE=launch-evidence.local.json SUI402_SERIOUS_LAUNCH=tru
 
 Accepted env vars:
 
+- `SUI402_STAGING_EVIDENCE`
+- `SUI402_FUNDED_REHEARSAL_EVIDENCE`
 - `SUI402_EXTERNAL_AUDIT_EVIDENCE`
+- `SUI402_MOVE_AUDIT_EVIDENCE`
+- `SUI402_BACKEND_SDK_AUDIT_EVIDENCE`
 - `SUI402_LEGAL_REVIEW_EVIDENCE`
+- `SUI402_SECRET_MANAGEMENT_EVIDENCE`
+- `SUI402_OIDC_EVIDENCE`
 - `SUI402_ONCALL_EVIDENCE`
 - `SUI402_KMS_EVIDENCE` or `SUI402_RECEIPT_SIGNER_EVIDENCE`
 - `SUI402_MONITORING_EVIDENCE`
+- `SUI402_BACKUP_RESTORE_EVIDENCE`
+- `SUI402_RPC_EVIDENCE`
+- `SUI402_SELLER_INTAKE_EVIDENCE`
+- `SUI402_MAINNET_GOVERNANCE_EVIDENCE` when launching mainnet
 
 Accepted JSON fields in the evidence file:
 
 ```json
 {
+  "staging": "STAGE-10 hosted staging runbook passed 2026-06-15 https://deploy.acme.co/sui402-staging",
+  "fundedRehearsal": "REHEARSE-12 evidence note docs/runbooks/testnet-rehearsal-evidence-2026-06-15.md",
   "externalAudit": "AUDIT-123 final report https://security.acme.co/reports/sui402-mainnet",
+  "moveAudit": "MOVEAUD-17 final report file:/evidence/move-audit.pdf",
+  "backendSdkAudit": "BEAUD-18 final report file:/evidence/backend-sdk-audit.pdf",
   "legalReview": "LEGAL-45 approved 2026-06-15",
+  "secretManagement": "SEC-9 vault access review and rotation drill 2026-06-15",
+  "oidc": "OIDC-11 negative auth test report 2026-06-15",
   "onCall": "PagerDuty escalation policy https://pagerduty.acme.co/policies/P123",
   "kms": "KMS smoke test 2026-06-15 verified signer digest sha256:0123456789abcdef",
-  "monitoring": "Grafana dashboard https://grafana.acme.co/d/sui402-mainnet and alert policy ALERT-9"
+  "monitoring": "Grafana dashboard https://grafana.acme.co/d/sui402-mainnet and alert policy ALERT-9",
+  "backupRestore": "BACKUP-22 restore drill 2026-06-15 RPO/RTO approved",
+  "suiRpc": "RPC-4 archive-capable provider quota/retention memo 2026-06-15",
+  "sellerIntake": "INTAKE-7 CAPTCHA/email/KYB risk acceptance 2026-06-15",
+  "mainnetGovernance": "GOV-5 multisig UpgradeCap policy and gas dry-run 2026-06-15"
 }
 ```
 

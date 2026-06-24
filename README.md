@@ -98,6 +98,8 @@ For the exact boundary between completed engineering and external launch gates,
 see `docs/production-readiness.md`.
 For the serious production launch tracker with P0/P1/P2 gates, owners,
 evidence, and launch criteria, see `docs/serious-launch-plan.md`.
+For the current execution backlog of what still needs hardening before a public
+launch, see `docs/production-hardening-backlog.md`.
 For paid MCP tools, see `docs/mcp.md`.
 For agent budget guardrails, see `docs/policy.md`.
 For paid API/MCP listing discovery, see `docs/registry.md`.

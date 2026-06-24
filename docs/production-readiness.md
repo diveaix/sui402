@@ -7,6 +7,8 @@ be truthfully completed inside the repository.
 
 The launch tracker with owners, evidence fields, priority sequencing, and
 concrete launch criteria is `docs/serious-launch-plan.md`.
+The current execution backlog for hardening and launch blockers is
+`docs/production-hardening-backlog.md`.
 
 ## Locally Complete
 

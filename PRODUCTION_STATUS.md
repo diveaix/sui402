@@ -1,12 +1,13 @@
 # Sui402 production readiness status
 
-Last verified: 2026-06-24
+Last verified: 2026-06-25
 
 ## Current status
 
 The repository is release-ready for the current testnet/demo production profile.
 The local production/readiness gates pass, including typecheck, tests, builds,
-security leak checks, npm package dry-runs, and clean-install proof.
+security leak checks, production dependency audit, launch-guard self-tests, npm
+package dry-runs, and clean-install proof.
 
 This does **not** mean the system is fully mainnet production launched. A real
 mainnet launch still requires external infrastructure, operational evidence,
@@ -27,7 +28,9 @@ npm run release:check
 - workspace test suites
 - all package/app builds
 - publisher token leak guard
+- production dependency audit
 - npm package dry-run checks
+- serious-launch readiness guard self-test
 - clean-install proof for publishable packages and CLI commands
 
 `npm run launch:check` passed against the local `.env.production` testnet
@@ -68,17 +71,27 @@ for:
 5. Monitoring/alerting evidence for API health, payment verification failures,
    indexer lag, storage errors, and settlement/export failures.
 6. On-call ownership, incident runbook, and escalation policy.
-7. External security review or explicit risk acceptance.
-8. Legal/compliance review for paid API marketplace behavior.
-9. Receipt signer/KMS/HSM decision and smoke evidence if receipts are enabled.
-10. Mainnet launch gate evidence if `SUI402_NETWORK=sui:mainnet`.
+7. Funded testnet rehearsal evidence covering paid calls, sessions, receipts,
+   settlement/reconciliation, indexers, marketplace/scan agreement, and optional
+   Walrus audit anchoring.
+8. External Move and backend/SDK security reviews or explicit risk acceptance.
+9. Legal/compliance review for paid API marketplace behavior.
+10. Receipt signer/KMS/HSM decision and smoke evidence if receipts are enabled.
+11. OIDC/JWKS production tenant evidence with MFA, roles, seller merchant scopes,
+    and negative auth tests.
+12. Sui RPC owner, quota, monitoring, and retention evidence.
+13. Public seller intake controls: CAPTCHA/email/domain/identity/KYB decision,
+    abuse escalation, and takedown workflow.
+14. Mainnet launch governance evidence if `SUI402_NETWORK=sui:mainnet`.
 
 ## Mainnet gate
 
 The current local launch profile is testnet-oriented. For mainnet launch,
 `scripts/launch-readiness-check.mjs` requires additional evidence for audit,
-legal review, monitoring, on-call, and signer/KMS posture. Do not bypass that
-gate unless the evidence is complete and recorded.
+legal review, hosted staging, funded rehearsal, secret management, OIDC/JWKS,
+monitoring, on-call, backup/restore, Sui RPC ownership, seller intake controls,
+and signer/KMS posture. Do not bypass that gate unless the evidence is complete
+and recorded.
 
 ## Deployment notes
 

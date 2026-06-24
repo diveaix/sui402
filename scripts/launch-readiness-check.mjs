@@ -43,6 +43,23 @@ if (!existsSync(envPath)) {
 
   if (requiresSeriousLaunchEvidence(env)) {
     pass("serious launch evidence gate", seriousLaunchReason(env));
+    requireHostedDeploymentTopology(env);
+    requireEvidence(
+      env,
+      evidence,
+      "hosted staging evidence",
+      ["SUI402_STAGING_EVIDENCE"],
+      ["staging", "hostedStaging", "hosted_staging"],
+      "provide hosted staging evidence: deployment URL, release note, runbook result, or ticket"
+    );
+    requireEvidence(
+      env,
+      evidence,
+      "funded rehearsal evidence",
+      ["SUI402_FUNDED_REHEARSAL_EVIDENCE"],
+      ["fundedRehearsal", "funded_rehearsal", "rehearsal"],
+      "provide funded testnet rehearsal evidence: runbook path, tx digest list, or dated evidence note"
+    );
     requireEvidence(
       env,
       evidence,
@@ -54,10 +71,42 @@ if (!existsSync(envPath)) {
     requireEvidence(
       env,
       evidence,
+      "Move audit evidence",
+      ["SUI402_MOVE_AUDIT_EVIDENCE"],
+      ["moveAudit", "move_audit"],
+      "provide independent Move audit evidence or accountable risk-acceptance reference"
+    );
+    requireEvidence(
+      env,
+      evidence,
+      "backend/SDK audit evidence",
+      ["SUI402_BACKEND_SDK_AUDIT_EVIDENCE"],
+      ["backendSdkAudit", "backend_sdk_audit", "backendAudit", "sdkAudit"],
+      "provide independent backend/SDK audit evidence or accountable risk-acceptance reference"
+    );
+    requireEvidence(
+      env,
+      evidence,
       "legal review evidence",
       ["SUI402_LEGAL_REVIEW_EVIDENCE"],
       ["legalReview", "legal_review", "legal"],
       "provide counsel/legal review evidence: approval URL/path, ticket, or dated memo"
+    );
+    requireEvidence(
+      env,
+      evidence,
+      "secret management evidence",
+      ["SUI402_SECRET_MANAGEMENT_EVIDENCE"],
+      ["secretManagement", "secret_management", "secrets"],
+      "provide secret manager, access review, and rotation evidence"
+    );
+    requireEvidence(
+      env,
+      evidence,
+      "OIDC/JWKS evidence",
+      ["SUI402_OIDC_EVIDENCE"],
+      ["oidc", "oidcJwks", "oidc_jwks"],
+      "provide production OIDC/JWKS tenant, MFA, role mapping, and negative auth test evidence"
     );
     requireEvidence(
       env,
@@ -83,6 +132,40 @@ if (!existsSync(envPath)) {
       ["monitoring", "observability", "alerts"],
       "provide monitoring evidence: dashboard URL/path, alert policy, synthetic check, or dated paging drill"
     );
+    requireEvidence(
+      env,
+      evidence,
+      "backup/restore evidence",
+      ["SUI402_BACKUP_RESTORE_EVIDENCE"],
+      ["backupRestore", "backup_restore", "backups"],
+      "provide managed backup and restore-drill evidence with RPO/RTO reference"
+    );
+    requireEvidence(
+      env,
+      evidence,
+      "Sui RPC evidence",
+      ["SUI402_RPC_EVIDENCE"],
+      ["suiRpc", "sui_rpc", "rpc"],
+      "provide production Sui RPC owner, quota, monitoring, and retention evidence"
+    );
+    requireEvidence(
+      env,
+      evidence,
+      "seller intake evidence",
+      ["SUI402_SELLER_INTAKE_EVIDENCE"],
+      ["sellerIntake", "seller_intake", "merchantIntake", "merchant_intake"],
+      "provide CAPTCHA/email/domain/identity/KYB or accepted seller-intake risk evidence"
+    );
+    if (env.SUI402_NETWORK === "sui:mainnet") {
+      requireEvidence(
+        env,
+        evidence,
+        "mainnet governance evidence",
+        ["SUI402_MAINNET_GOVERNANCE_EVIDENCE"],
+        ["mainnetGovernance", "mainnet_governance"],
+        "provide mainnet signer custody, UpgradeCap policy, gas dry-run, and forward-fix evidence"
+      );
+    }
   } else {
     pass("serious launch evidence gate", "not required for non-mainnet/non-serious launch");
   }
@@ -187,6 +270,49 @@ function seriousLaunchReason(env) {
   return "required because SUI402_SERIOUS_LAUNCH=true";
 }
 
+function requireHostedDeploymentTopology(env) {
+  requireValue(env, "SUI402_REDIS_URL", looksLikeHostedUrl, "serious launch requires a managed Redis URL, not local Compose defaults");
+  requireValue(env, "SUI402_POSTGRES_URL", looksLikeHostedUrl, "serious launch requires a managed provider Postgres URL");
+  requireValue(
+    env,
+    "SUI402_CONSOLE_STORAGE_DRIVER",
+    (value) => value === "postgres",
+    "serious launch requires Postgres-backed console storage"
+  );
+  requireValue(env, "SUI402_CONSOLE_POSTGRES_URL", looksLikeHostedUrl, "serious launch requires managed console Postgres");
+  requireValue(env, "SUI402_INDEXER_POSTGRES_URL", looksLikeHostedUrl, "serious launch requires durable indexer cursor/event storage");
+  requireValue(env, "SUI402_CONSOLE_PROVIDER_BASE_URL", looksLikePublicHttpsUrl, "serious launch requires a public HTTPS console/gateway URL");
+  requireValue(env, "SUI402_CONSOLE_CORS_ORIGINS", looksLikePublicHttpsOriginList, "serious launch CORS origins must be public HTTPS origins");
+  requireValue(env, "VITE_SUI402_CONSOLE_API_URL", looksLikePublicHttpsUrl, "dashboard must point at a public HTTPS console API URL");
+  requireValue(env, "SUI402_CONSOLE_OIDC_ISSUER", looksLikePublicHttpsUrl, "serious launch requires OIDC/JWKS operator auth");
+  requireValue(env, "SUI402_CONSOLE_OIDC_AUDIENCE", (value) => value.length >= 3, "serious launch requires an OIDC audience");
+  requireValue(env, "SUI402_CONSOLE_OIDC_JWKS_URL", looksLikePublicHttpsUrl, "serious launch requires a public HTTPS JWKS URL");
+
+  if (env.SUI402_GRPC_URL) {
+    if (looksLikePublicSuiDefaultRpc(env.SUI402_GRPC_URL)) {
+      fail("Sui RPC ownership", "serious launch requires a contracted/dedicated/archive-capable Sui RPC, not the public default fullnode");
+    } else if (looksLikePublicHttpsUrl(env.SUI402_GRPC_URL)) {
+      pass("Sui RPC ownership", "non-default HTTPS RPC configured; verify quota/retention evidence separately");
+    } else {
+      fail("Sui RPC ownership", "serious launch SUI402_GRPC_URL must be an HTTPS RPC endpoint with an owner/quota");
+    }
+  } else {
+    fail("Sui RPC ownership", "serious launch requires SUI402_GRPC_URL with owner/quota/retention evidence");
+  }
+
+  if (env.SUI402_RECEIPT_PRIVATE_KEY_PEM || env.SUI402_RECEIPT_PRIVATE_KEY_PEM_BASE64) {
+    fail("receipt private key material", "serious launch must not inject raw receipt private keys into app env");
+  } else {
+    pass("receipt private key material", "not present in env");
+  }
+
+  if (env.SUI402_RECEIPT_SIGNER_ID && env.SUI402_RECEIPT_SIGNER_PROVIDER !== "external") {
+    fail("receipt signer provider", "serious launch receipt signing must use external/KMS/HSM/Vault provider or be explicitly disabled");
+  } else {
+    pass("receipt signer provider", env.SUI402_RECEIPT_SIGNER_ID ? "external signer selected" : "receipt signing disabled");
+  }
+}
+
 function requireEvidence(env, evidence, name, envKeys, evidenceKeys, message) {
   const envKey = envKeys.find((key) => env[key] || process.env[key]);
   if (envKey) {
@@ -277,6 +403,56 @@ function looksLikeUrl(value) {
   } catch {
     return false;
   }
+}
+
+function looksLikeHostedUrl(value) {
+  try {
+    const parsed = new URL(value);
+    if (!["postgres:", "postgresql:", "redis:", "rediss:"].includes(parsed.protocol)) {
+      return false;
+    }
+
+    return !isLocalHostname(parsed.hostname) && !/example|password|replace|localhost/i.test(value);
+  } catch {
+    return false;
+  }
+}
+
+function looksLikePublicHttpsUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" && !isLocalHostname(parsed.hostname) && !/example|localhost/i.test(value);
+  } catch {
+    return false;
+  }
+}
+
+function looksLikePublicHttpsOriginList(value) {
+  return value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .every(looksLikePublicHttpsUrl);
+}
+
+function looksLikePublicSuiDefaultRpc(value) {
+  try {
+    const parsed = new URL(value);
+    return /(^|\.)fullnode\.(mainnet|testnet|devnet)\.sui\.io$/i.test(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isLocalHostname(hostname) {
+  const normalized = hostname.toLowerCase().replace(/\.+$/, "");
+  return (
+    normalized === "localhost" ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1" ||
+    normalized.endsWith(".localhost") ||
+    normalized.endsWith(".local")
+  );
 }
 
 function redact(key, value) {

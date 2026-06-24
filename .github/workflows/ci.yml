@@ -32,6 +32,21 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Security token leak guard
+        run: npm run security:check
+
+      - name: Production dependency audit
+        run: npm run dependency:audit
+
+      - name: NPM package dry-run guard
+        run: npm run package:check
+
+      - name: Launch readiness guard self-test
+        run: npm run launch:guard:check
+
+      - name: Packaged CLI clean-install guard
+        run: npm run package:clean-install
+
   move:
     runs-on: ubuntu-latest
     steps:

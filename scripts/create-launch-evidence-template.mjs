@@ -19,11 +19,21 @@ const template = {
     "Accepted references include report URLs, ticket IDs, dated memos, file paths, dashboard links, alert-policy IDs, or sha256 digests.",
     "Placeholders such as true, done, todo, pending, example, or sample intentionally fail npm run launch:check."
   ],
+  staging: "",
+  fundedRehearsal: "",
   externalAudit: "",
+  moveAudit: "",
+  backendSdkAudit: "",
   legalReview: "",
+  secretManagement: "",
+  oidc: "",
   onCall: "",
   kms: "",
-  monitoring: ""
+  monitoring: "",
+  backupRestore: "",
+  suiRpc: "",
+  sellerIntake: "",
+  mainnetGovernance: ""
 };
 
 writeFileSync(outputPath, `${JSON.stringify(template, null, 2)}\n`, { encoding: "utf8", flag: "w" });
