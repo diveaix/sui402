@@ -148,7 +148,7 @@ const dashboardPageHeaders: Record<DashboardPageId, { eyebrow: string; title: st
   publisher: {
     eyebrow: "Publisher portal",
     title: "List an API for paid access",
-    description: "Submit an endpoint, price, scope, and payout wallet proof so agents can discover and pay for your API.",
+    description: "Submit an endpoint, price, payout wallet, and access rule so agents can discover and pay for your API.",
     action: "Browse marketplace",
     actionPage: "marketplace"
   },
@@ -329,7 +329,7 @@ function App() {
     }
 
     if (!hasConsoleApi()) {
-      setMarketplaceDetailError("Connect VITE_SUI402_CONSOLE_API_URL to open a shared marketplace API link.");
+      setMarketplaceDetailError("Connect a live console API before opening shared marketplace links.");
       return;
     }
 
@@ -382,7 +382,7 @@ function App() {
       return;
     }
     if (!hasConsoleApi()) {
-      setScanError("Connect VITE_SUI402_CONSOLE_API_URL to use live scan lookup.");
+      setScanError("Connect a live console API before running public scan lookups.");
       setScanResult(undefined);
       return;
     }
@@ -476,6 +476,7 @@ function App() {
   const latestPaymentDigest = apiState.payments[0]?.digest;
   const pageHeader = dashboardPageHeaders[activePage];
   const pageActionTarget = pageHeader.actionPage;
+  const roleLabel = pageRoleLabel(activePage);
 
   useEffect(() => {
     function handleDashboardDeepLink() {
@@ -719,7 +720,7 @@ function App() {
     if (!applicationId || !token) {
       setApiState((current) => ({
         ...current,
-        error: "Paste the merchant application id and private publisher access token to resume"
+        error: "Paste the merchant application id and publisher resume token to resume"
       }));
       return;
     }
@@ -742,7 +743,7 @@ function App() {
         error:
           error instanceof Error
             ? error.message
-            : "Publisher API resume failed; make sure this is the private publisher access token, not the public verification token"
+            : "Publisher API resume failed; make sure this is the publisher resume token, not the public verification token"
       }));
     } finally {
       setPublisherResumeLoading(false);
@@ -792,7 +793,7 @@ function App() {
     if (!submittedApplication || !token) {
       setApiState((current) => ({
         ...current,
-        error: "Submit an upstream-backed publisher API and keep the private publisher access token before creating a publisher session"
+        error: "Submit an upstream-backed publisher API and keep the publisher resume token before creating a publisher session"
       }));
       return undefined;
     }
@@ -887,7 +888,7 @@ function App() {
 
         <div className="sidebar-note">
           <ShieldCheck size={18} />
-          <span>Replay checks and scope binding are enforced before access.</span>
+          <span>Payment proofs are checked before paid access is unlocked.</span>
         </div>
       </aside>
 
@@ -935,7 +936,7 @@ function App() {
               <RefreshCw size={17} />
             </button>
             <div className="profile">
-              <span>Operator</span>
+              <span>{roleLabel}</span>
               <div>S4</div>
             </div>
           </div>
@@ -998,7 +999,7 @@ function App() {
               <span className="status-dot ready" />
               <div>
                 <strong>MCP tool flow</strong>
-                <p>Agents can discover paid MCP scopes, pay on Sui, and call tools with verifiable payment evidence.</p>
+                <p>Agents can discover paid MCP tools, pay on Sui, and call them with verifiable payment evidence.</p>
               </div>
               <button className="text-button" type="button" onClick={() => navigateDashboardPage("mcp")}>
                 Open MCP
@@ -1008,7 +1009,7 @@ function App() {
               <span className="status-dot ready" />
               <div>
                 <strong>Publisher intake</strong>
-                <p>API owners can submit an endpoint, price, resource scope, payout wallet, and review proof.</p>
+                <p>API owners can submit an endpoint, price, paid access rule, payout wallet, and review proof.</p>
               </div>
               <button className="text-button" type="button" onClick={() => navigateDashboardPage("publisher")}>
                 Add API
@@ -1031,7 +1032,7 @@ function App() {
           <article>
             <span>Data source</span>
             <strong>{consoleModeLabel}</strong>
-            <small>{hasConsoleApi() ? "Live routes are queried from the console backend." : "Seeded records keep the demo deterministic offline."}</small>
+            <small>{hasConsoleApi() ? "Live routes are queried from the console API." : "Seeded records keep the demo deterministic offline."}</small>
           </article>
           <article>
             <span>Agent path</span>
@@ -1211,8 +1212,8 @@ function App() {
                       <strong>{formatNetwork(row.network)}</strong>
                     </div>
                     <div>
-                      <span>Resource</span>
-                      <strong>{row.resourceScope}</strong>
+                      <span>Paid access</span>
+                      <strong>{describeResource(row.resourceScope, row.transport)}</strong>
                     </div>
                     <div>
                       <span>Payments</span>
@@ -1321,7 +1322,7 @@ function App() {
             <div>
               <span className="eyebrow">MCP marketplace</span>
               <h2>Paid MCP tools listed for agents</h2>
-              <p>These are MCP listings discovered from the registry via <code>transport: "mcp"</code> or <code>mcp:*</code> resource scopes.</p>
+              <p>These are MCP listings discovered from the registry as paid tool entries.</p>
             </div>
           </div>
 
@@ -1410,8 +1411,8 @@ function App() {
                     </div>
                     <div className="marketplace-meta">
                       <div>
-                        <span>Tool scope</span>
-                        <strong>{row.resourceScope}</strong>
+                        <span>Paid tool</span>
+                        <strong>{describeResource(row.resourceScope, row.transport)}</strong>
                       </div>
                       <div>
                         <span>Price</span>
@@ -1565,7 +1566,7 @@ function App() {
                 <thead>
                   <tr>
                     <th>Merchant</th>
-                    <th>Resource</th>
+                    <th>Paid access</th>
                     <th>Network</th>
                     <th>Amount</th>
                     <th>Status</th>
@@ -1576,7 +1577,7 @@ function App() {
                   {visiblePayments.map((row) => (
                     <tr key={row.digest}>
                       <td>{row.merchant}</td>
-                      <td>{row.resource}</td>
+                      <td>{describeResource(row.resource, transportForResource(row.resource))}</td>
                       <td>{row.network}</td>
                       <td>{row.amount}</td>
                       <td>
@@ -1602,8 +1603,8 @@ function App() {
                     <strong>{row.merchant}</strong>
                   </div>
                   <div>
-                    <span>Resource</span>
-                    <strong>{row.resource}</strong>
+                    <span>Paid access</span>
+                    <strong>{describeResource(row.resource, transportForResource(row.resource))}</strong>
                   </div>
                   <div>
                     <span>Network</span>
@@ -1658,7 +1659,7 @@ function App() {
                 <KeyRound size={18} />
                 <h2>Provider manifest health</h2>
               </div>
-              <p>Network, merchant, price, resource scope, and session manager paths are discoverable.</p>
+              <p>Network, merchant wallet, price, paid access rules, and session manager paths are discoverable.</p>
               <div className="manifest-code">/.well-known/sui402</div>
             </article>
 
@@ -1932,7 +1933,7 @@ function App() {
             <div className="panel-header">
               <div>
                 <h2>Audit trail</h2>
-                <p>Recent sensitive console actions captured by the backend.</p>
+                <p>Recent sensitive console actions captured by the console API.</p>
               </div>
             </div>
             <div className="audit-list">
@@ -2040,7 +2041,7 @@ function App() {
             </div>
 
             <div className="publisher-start-note">
-              Paste a URL first. We will infer the listing name, marketplace ID, and default paid scope before asking for payout details.
+              Paste a URL first. We will infer the listing name, marketplace slug, and default paid access rule before asking for payout details.
             </div>
 
             <div className="publisher-finish-flow" hidden={!publisherDetailsOpen}>
@@ -2057,7 +2058,7 @@ function App() {
                 }}
               />
               <small id="openapi-url-help">
-                Paste a public JSON spec to preview endpoints and suggested resource scopes. It will not change pricing or publish
+                Paste a public JSON spec to preview endpoints and suggested paid access rules. It will not change pricing or publish
                 anything automatically.
               </small>
             </label>
@@ -2231,8 +2232,7 @@ function App() {
               <div>
                 <strong>Resume an existing draft</strong>
                 <span>
-                  Paste the merchant application id and private publisher access token from your original create response. The token stays in
-                  memory only.
+                  Paste the merchant application id and publisher resume token from your original create response. The token stays in memory only.
                 </span>
               </div>
               <div className="publisher-resume-fields">
@@ -2243,7 +2243,7 @@ function App() {
                   onChange={(event) => setPublisherResume({ ...publisherResume, applicationId: event.target.value.trim() })}
                 />
                 <input
-                  aria-label="Private publisher access token"
+                  aria-label="Publisher resume token"
                   type="password"
                   value={publisherResume.publisherAccessToken}
                   placeholder="sui402p_..."
@@ -2320,13 +2320,11 @@ function App() {
                   <div>
                     <strong>Publisher session</strong>
                     <span>
-                      Use a short-lived Bearer session for status/probe calls instead of sending the long-lived publisher access token
-                      from the browser.
+                      Use a short-lived Bearer session for status/probe calls instead of repeatedly pasting the publisher resume token.
                     </span>
                     {publisherSession ? (
                       <small>
-                        Active until {formatTimestamp(publisherSession.expiresAt)}. Rotating the publisher access token invalidates this
-                        session.
+                        Active until {formatTimestamp(publisherSession.expiresAt)}. Rotating the publisher resume token invalidates this session.
                       </small>
                     ) : (
                       <small>Create a session after saving the draft, then use the session-authenticated commands below.</small>
@@ -2536,7 +2534,7 @@ export function MarketplaceApiDetailPanel({
         <ScanFact label="price" value={formatPrice(price, coinType)} />
         <ScanFact label="network" value={formatNetwork(network)} />
         <ScanFact label="transport" value={api?.transport ?? row.transport} />
-        <ScanFact label="resource" value={resourceScope} />
+        <ScanFact label="paid access" value={describeResource(resourceScope, api?.transport ?? row.transport)} />
         <ScanFact label="merchant" value={shortValue(merchantAddress)} />
         <ScanFact label="payments" value={(stats?.verifiedPayments ?? row.paymentCount).toLocaleString()} />
         <ScanFact label="sessions" value={(stats?.sessionPayments ?? 0).toLocaleString()} />
@@ -2610,7 +2608,7 @@ export function MarketplaceApiDetailPanel({
             <ScanFact label="network" value={formatNetwork(paymentPlan.network)} />
             <ScanFact label="max one-shot" value={paymentPlan.maxOneShotAmount} />
             <ScanFact label="session behavior" value={paymentPlan.sessionBehavior.replace(/_/g, " ")} />
-            <ScanFact label="resource hash" value={shortValue(paymentPlan.resourceScopeHash)} />
+            <ScanFact label="access proof hash" value={shortValue(paymentPlan.resourceScopeHash)} />
           </div>
           {paymentPlan.notes.length > 0 ? <span>{paymentPlan.notes[0]}</span> : null}
         </div>
@@ -2714,7 +2712,13 @@ export function ScanResultCard({ result }: { result: ScanLookupResult }) {
           <ScanFact label="wallet" value={shortValue(merchant?.merchant ?? record.listing?.merchant ?? "unknown")} />
           <ScanFact label="network" value={formatNetwork(merchant?.network ?? record.listing?.network ?? "unknown")} />
           <ScanFact label="price" value={formatPrice(merchant?.price ?? record.listing?.price ?? "0", merchant?.coinType ?? record.listing?.coinType ?? "")} />
-          <ScanFact label="resource" value={merchant?.resourceScope ?? record.listing?.resourceScope ?? "unknown"} />
+          <ScanFact
+            label="paid access"
+            value={describeResource(
+              merchant?.resourceScope ?? record.listing?.resourceScope ?? "unknown",
+              transportForResource(merchant?.resourceScope ?? record.listing?.resourceScope ?? "")
+            )}
+          />
           <ScanFact label="verified payments" value={record.stats.verifiedPayments.toLocaleString()} />
           <ScanFact label="session payments" value={record.stats.sessionPayments.toLocaleString()} />
           <ScanFact label="volume" value={record.stats.volume} />
@@ -2807,7 +2811,7 @@ export function ScanResultCard({ result }: { result: ScanLookupResult }) {
       <ScanCodeRow label="share link" value={shareUrl} />
       <ScanCodeRow label="tx digest" value={record.txDigest} />
       {record.ledgerId ? <ScanCodeRow label="ledger id" value={record.ledgerId} /> : null}
-      {record.resourceScopeHash ? <ScanCodeRow label="resource hash" value={record.resourceScopeHash} /> : null}
+      {record.resourceScopeHash ? <ScanCodeRow label="access proof hash" value={record.resourceScopeHash} /> : null}
     </article>
   );
 }
@@ -2864,21 +2868,21 @@ function PublisherOpenApiPreviewCard({
         </div>
       ) : null}
       {openApi.suggestedEndpoints.length > 0 ? (
-        <div className="publisher-openapi-endpoints" aria-label="Suggested OpenAPI resource scopes">
-          <small>Suggested scopes to review. Copy one into Resource scope if it matches the paid route you want to launch.</small>
+        <div className="publisher-openapi-endpoints" aria-label="Suggested OpenAPI paid access rules">
+          <small>Suggested paid access rules to review. Use one if it matches the route you want to charge for.</small>
           {openApi.suggestedEndpoints.slice(0, 4).map((endpoint) => (
             <div key={`${endpoint.method}:${endpoint.path}`}>
               <span>{endpoint.method}</span>
               <strong>{endpoint.path}</strong>
               <code>{endpoint.suggestedResourceScope}</code>
               <button
-                aria-label={`Copy resource scope for ${endpoint.method} ${endpoint.path}`}
+                aria-label={`Copy paid access rule for ${endpoint.method} ${endpoint.path}`}
                 className="ghost-button publisher-openapi-copy"
                 type="button"
                 onClick={() => void navigator.clipboard?.writeText(endpoint.suggestedResourceScope)}
               >
                 <Copy size={13} />
-                Copy scope
+                Copy rule
               </button>
               {onSelectEndpoint ? (
                 <button
@@ -3198,7 +3202,7 @@ function buildMarketplaceRows(
   return [...new Map(payments.map((payment) => [payment.merchant, payment])).values()].map((payment) => ({
     id: payment.merchant,
     name: titleize(payment.merchant),
-    description: describeResource(payment.resource, payment.resource.startsWith("mcp:") ? "mcp" : "http"),
+    description: describeResource(payment.resource, transportForResource(payment.resource)),
     network: payment.network,
     transport: payment.resource.startsWith("mcp:") ? "mcp" : "http",
     price: payment.amount.replace(/[^\d]/g, "") || "0",
@@ -3293,7 +3297,7 @@ function countPaymentsByMerchant(payments: PaymentRow[]): Map<string, number> {
 }
 
 function describeResource(resourceScope: string, transport: "http" | "mcp"): string {
-  if (transport === "mcp") {
+  if (transport === "mcp" || resourceScope.startsWith("mcp:")) {
     return "Paid MCP tool surface with Sui402 proof verification and optional session spend.";
   }
 
@@ -3306,6 +3310,10 @@ function describeResource(resourceScope: string, transport: "http" | "mcp"): str
   }
 
   return "Hosted Sui402 API with discoverable payment manifest and gateway access path.";
+}
+
+function transportForResource(resourceScope: string): "http" | "mcp" {
+  return resourceScope.startsWith("mcp:") ? "mcp" : "http";
 }
 
 function formatNetwork(value: string): string {
@@ -3547,6 +3555,23 @@ function defaultTargetForDashboardPage(pageId: DashboardPageId): string {
   }
 }
 
+function pageRoleLabel(pageId: DashboardPageId): string {
+  switch (pageId) {
+    case "marketplace":
+    case "mcp":
+      return "Agent";
+    case "publisher":
+      return "Publisher";
+    case "scan":
+      return "Viewer";
+    case "operator":
+      return "Operator";
+    case "overview":
+    default:
+      return "Demo";
+  }
+}
+
 function shareUrlForPath(path: string): string {
   const url = new URL(window.location.href);
   url.pathname = path;
@@ -3634,7 +3659,7 @@ function buildSetupPrompt(draft: MerchantDraft, environment: string): string {
   const apiUrl = draft.apiUrl || "https://api.example.com";
   const merchant = draft.address || "0xYOUR_PUBLISHER_WALLET";
   const resource = draft.resourceScope || `api:${draft.id || "your-api"}`;
-  return `Add Sui402 payments to ${apiUrl}. Protect the paid API with @sui402/server, charge ${draft.price} units of ${draft.coinType} on ${environment === "Mainnet" ? "sui:mainnet" : "sui:testnet"}, pay merchant ${merchant}, use resource scope ${resource}, and expose /.well-known/sui402 for agent discovery.`;
+  return `Add Sui402 payments to ${apiUrl}. Use @sui402/server to protect the paid route, charge ${formatPrice(draft.price, draft.coinType)} on ${environment === "Mainnet" ? "sui:mainnet" : "sui:testnet"}, pay the publisher wallet ${merchant}, use paid access rule ${resource}, and expose /.well-known/sui402 for agent discovery.`;
 }
 
 function buildVerificationDocument(application: MerchantApplication, nextSteps?: MerchantApplicationNextSteps): string {
